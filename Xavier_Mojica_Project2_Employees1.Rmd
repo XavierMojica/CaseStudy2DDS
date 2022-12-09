@@ -1,0 +1,382 @@
+---
+title: "Case Study 2-Employees"
+author: "Xavier Mojica"
+date: "2022-11-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Employee Data
+## Presenting Findings on Employees 
+### R Data Manipuilationn and Import. Pre load packages.
+```{r}
+library(ggplot2)
+library(stringi)
+library(readxl)
+library(Metrics)
+library(XML)
+library(rvest)
+library(naniar)
+library(e1071)
+library(caret)
+library(class)
+library(tidyverse)
+library(stringr)
+library(dplyr)
+library(GGally)
+library(tidyr)
+library(knitr)
+library(rmarkdown)
+library(psych)
+library(fastDummies)
+```
+#Reading in File
+```{r}
+#Reading our Beer and Brewery Files
+employeeData = read.csv('CaseStudy2-data (1).csv', header = TRUE)
+
+#Checking data
+head(employeeData)
+```
+
+#Cleaning Data
+```{r}
+##Cleaning up data by removing NAs. 
+is.na(employeeData)
+CleanEmployeeData = na.omit(employeeData)
+
+#summarizing data
+str(CleanEmployeeData)
+summary(CleanEmployeeData)
+```
+
+#Changing OverTime to 1s and 0s
+```{r}
+CleanEmployeeData$OverTimeScale = ifelse(CleanEmployeeData$OverTime =="Yes", 1,0) 
+```
+
+#Scaling Columns
+```{r}
+CleanEmployeeData$MonthlyIncomeScale = scale(CleanEmployeeData$MonthlyIncome)
+CleanEmployeeData$AgeScale = scale(CleanEmployeeData$Age)
+CleanEmployeeData$EnvironmentSatisfactionScale = scale(CleanEmployeeData$EnvironmentSatisfaction)
+CleanEmployeeData$OverTimeScale = scale(CleanEmployeeData$OverTimeScale)
+
+CleanEmployeeData$YearsAtCompanyScale = scale(CleanEmployeeData$YearsAtCompany)
+
+head(CleanEmployeeData)
+
+```
+
+
+
+
+#Ploting
+```{r,echo=FALSE, message=FALSE,warning=FALSE,results="hide"}
+
+cor(CleanEmployeeData[,unlist(lapply(CleanEmployeeData, is.numeric))])
+
+#more refined by removing unnecessary columns
+#cor(CleanEmployeeData[,c(2,5,7,8,12,14,15,16,18, 20,21,25,26,27,29,30, 31,32,33,34,35,36,37)])
+pairs.panels(CleanEmployeeData[,c(2,5,7,8,12,14,15,16,18, 20,21,25,26,27,29,30,31,32,33,34,35,36,37)])
+
+#ploting correlation 
+#pairs.panels(CleanEmployeeData[,c(2,5,7,8,12,14,15,16,18)])
+#pairs.panels(CleanEmployeeData[,c(20,21,25,26,27,29,30,31,32,33,34,35,36,37)])
+#can use a facet ggplot with like 5 variables i.e. , r shinny allows or packages in R that does the same with custom tables , display on subset of correlations 
+ggpairs(CleanEmployeeData[,c(3,2,12,20,18)], aes(col = Attrition))
+
+ggpairs(CleanEmployeeData[,c(3,25,27,35)], aes(col = Attrition))
+
+ggpairs(CleanEmployeeData[,c(3,24,16,33 )], aes(col = Attrition))
+```
+
+#Correlation Plots
+```{r}
+
+#Attrition Count
+CleanEmployeeData %>% ggplot(aes(x=Attrition,fill=Attrition)) + labs(title = "Attrition Count", x = "Attrition") + geom_bar()
+
+#Attrition V. Monthly Income
+CleanEmployeeData %>% ggplot(aes(x=MonthlyIncome,fill=Attrition)) + ggtitle("Attrition V. Monthly Income") + geom_histogram()
+
+#Attrition V. Monthly Rate
+CleanEmployeeData %>% ggplot(aes(x=MonthlyRate,fill=Attrition)) + geom_histogram() + ggtitle("Attrition Vs. Monthly Rate") 
+
+#Attrition V. OverTime
+CleanEmployeeData %>% ggplot(aes(x=OverTime,fill=Attrition)) + geom_bar(position="fill") + ggtitle("Attrition Vs. Overtime")
+
+
+# Attrition V. Job Satisfaction
+CleanEmployeeData %>% ggplot(aes(x=JobSatisfaction,fill=Attrition))+ geom_bar() + labs(title = "Attrition Vs. Job Satisfaction")
+
+#Attrition V. Age
+CleanEmployeeData %>% ggplot(aes(x=Age,fill=Attrition)) + ggtitle("Attrition Vs. Age") + geom_histogram()
+
+# Attrition V. Relationship Satisfaction
+CleanEmployeeData %>% ggplot(aes(x=RelationshipSatisfaction,fill=Attrition)) + geom_histogram() + ggtitle("Attrition Vs. RelationshipSatisfaction")
+
+# Attrition V. Work Life BalanceJob
+CleanEmployeeData %>%ggplot(aes(x=WorkLifeBalance,fill=Attrition)) + geom_histogram() + labs( title = "Attrition Vs. WorkLifeBalance") 
+
+# By Job Role
+ggplot(CleanEmployeeData, aes(x = JobRole, fill = Attrition)) + geom_bar(position = "fill") + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust= 1))
+
+# Total of Employees By Job Role 
+ggplot(CleanEmployeeData, aes(x = JobRole, fill = JobRole)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) + labs(title = "Employees by Job Role", fill = "Job Role")
+
+#HourlyRate v. Job Role 
+ggplot(CleanEmployeeData, aes(x = JobRole, y = HourlyRate, fill = factor(JobRole))) + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) + labs(title = "Hourly Rate of Employees by Job Role", fill = "Job Roles") + geom_boxplot()
+
+#MonthlyIncome v. JobRole
+ggplot(CleanEmployeeData, aes(x = JobRole, y = MonthlyIncome, fill = factor(JobRole))) + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) + labs(title = "Montly Income of Employees by Job Role", fill = "Job Roles") + geom_boxplot()
+
+#Job Role v. Attrition 
+ggplot(CleanEmployeeData, aes(x = JobRole, fill = Attrition)) + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) + labs(title = "Attrition by Job Role", fill = "Attrition") + geom_bar(position = "fill")
+
+#By Job Level 
+ggplot(CleanEmployeeData, aes(x = JobLevel, fill = Attrition)) + geom_bar(position = "fill") + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1))
+
+```
+
+
+#Testing to find K 
+```{r}
+# Loop for many k and the average of many training / test partition
+
+set.seed(4)
+
+iterations = 500
+numks = 30
+masterAcc = matrix(nrow = iterations, ncol = numks)
+
+for(j in 1:iterations)
+{
+  accs = data.frame(accuracy = numeric(30), k = numeric(30))
+  trainIndices = sample(1:dim(CleanEmployeeData)[1], round(0.70* dim(CleanEmployeeData)[1]))
+  train = CleanEmployeeData[trainIndices,]
+  test = CleanEmployeeData[-trainIndices,]
+  for(i in 1:numks)
+  {
+    classifications = knn(train[,c(37,38,40)], test[,c(37,38,40)], train$Attrition, prob = TRUE, k = i)   #37,38,40
+    table(classifications, test$Attrition)
+    cm = confusionMatrix(table(classifications, test$Attrition))
+    masterAcc[j,i] = cm$overall[1]
+  }
+}
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,numks,1),MeanAcc, type = "l")
+
+```
+#Creating the KNN Model
+```{r}
+#KNN
+classifications = knn(train[,c(37,38,40)], test[,c(37,38,40)], train$Attrition, prob = TRUE, k =15) #9 previously 
+classifications
+
+table(classifications, test$Attrition)
+cm = confusionMatrix(table(classifications, test$Attrition))
+cm
+# Accuracy : 0.8621, Sensitivity : 0.9381, Specificity : 0.3714  
+```
+
+
+
+#Naive Bayes
+```{r}
+
+model = CleanEmployeeData %>% select(c("JobRole","MonthlyIncome","OverTime","EnvironmentSatisfaction","Age", "DailyRate","JobLevel","JobInvolvement","TotalWorkingYears", "Attrition"))
+
+trainIndices = sample(1:dim(model)[1],round(.70 * dim(model)[1]))
+train = model[trainIndices,]
+test = model[-trainIndices,]
+
+set.seed(7)
+classifier1 = naiveBayes(model[,c(2,3,7)],model$Attrition)
+pred = predict(classifier1,newdata=test)
+CM = confusionMatrix(table(test$Attrition,pred))
+
+
+CM
+#Accuracy 87.74%,  Sensitivity : 0.9068  , Specificity : 0.6000  
+```
+
+
+#Finding Correlations  
+```{r}
+cor(CleanEmployeeData$MonthlyIncome ,CleanEmployeeData[,c(2,5,7,8,12,14,15,16,18,20,21,25,26,27,29,30, 31,32,33,34,35,36,37)])
+
+```
+
+#Preparing with Dummy Variables 
+```{r}
+CleanEmployeeData1 = CleanEmployeeData
+CleanEmployeeData1 = dummy_cols(CleanEmployeeData, select_columns = c("BusinessTravel", "Department", "EducationField", "Gender", "JobRole"))
+
+CleanEmployeeData1$BusinessTravelTF = ifelse(CleanEmployeeData1$`BusinessTravel_Non-Travel` == 1, 0,1)
+
+CleanEmployeeData1$JobRoleTF = ifelse(CleanEmployeeData1$JobRole_Manager == 1|CleanEmployeeData1$`JobRole_Sales Executive` == 1|CleanEmployeeData1$`JobRole_Research Director` == 1,0,1)
+
+CleanEmployeeData1[, c(39:66)] = CleanEmployeeData1[,c(39:66)] %>% mutate_if(sapply(CleanEmployeeData1[, c(39:66)], is.numeric), as.factor)
+
+lm_SalaryDF = CleanEmployeeData1[,c(2,5,7,8,12,14:16,18,20,21,25:27, 29:37, 39:64)]
+
+lmSalaryMod = lm(MonthlyIncome~., lm_SalaryDF)
+
+summary(lmSalaryMod)
+
+
+```
+
+
+
+#Reading in  No Slary Data
+```{r}
+EmployeeDataSalary = read_excel('CaseStudy2CompSet No Salary.xlsx')
+```
+
+#Cleaning No Slary Data
+```{r}
+CleanEmployeeDataSalary = na.omit(EmployeeDataSalary)
+
+head(CleanEmployeeDataSalary)
+
+```
+
+```{r}
+cor(CleanEmployeeData$MonthlyIncome ,CleanEmployeeData[,c(2,5,7,8,12,14,15,16,18, 20,21,25,26,27,29,30, 31,32,33,34,35,36,37)])
+
+#cor(CleanEmployeeDataSalary[,unlist(lapply(CleanEmployeeDataSalary, is.numeric))])
+
+```
+
+
+#RMSE
+```{r}
+#str(CleanEmployeeData1)
+#c(16,20,21,26,28,35,39,41,44,56,57,59
+#c(16,20,21,26,30,35,42,44, 49,61, 62, 63)
+#(16,30,59,61,42,26,35,63)
+
+set.seed(7)
+
+lm_SalaryDF = CleanEmployeeData1[,c(16,20,30,59,61,42,26,35,63)] 
+
+lmSalaryMod = lm(MonthlyIncome~., lm_SalaryDF)
+
+summary(lmSalaryMod)
+
+
+
+```
+
+
+
+
+
+
+
+ $ ID                      : int  1 2 3 4 5 6 7 8 9 10 ...
+ $ Age                     : int  32 40 35 32 24 27 41 37 34 34 ...
+ $ Attrition               : chr  "No" "No" "No" "No" ...
+ $ BusinessTravel          : chr  "Travel_Rarely" "Travel_Rarely" "Travel_Frequently" "Travel_Rarely" ...
+ $ DailyRate               : int  117 1308 200 801 567 294 1283 309 1333 653 ...
+ $ Department              : chr  "Sales" "Research & Development" "Research & Development" "Sales" ...
+ $ DistanceFromHome        : int  13 14 18 1 2 10 5 10 10 10 ...
+ $ Education               : int  4 3 2 4 1 2 5 4 4 4 ...
+ $ EducationField          : chr  "Life Sciences" "Medical" "Life Sciences" "Marketing" ...
+ $ EmployeeCount           : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ EmployeeNumber          : int  859 1128 1412 2016 1646 733 1448 1105 1055 1597 ...
+ $ EnvironmentSatisfaction : int  2 3 3 3 1 4 2 4 3 4 ...
+ $ Gender                  : chr  "Male" "Male" "Male" "Female" ...
+ $ HourlyRate              : int  73 44 60 48 32 32 90 88 87 92 ...
+ $ JobInvolvement          : int  3 2 3 3 3 3 4 2 3 2 ...
+ $ JobLevel                : int  2 5 3 3 1 3 1 2 1 2 ...
+ $ JobRole                 : chr  "Sales Executive" "Research Director" "Manufacturing Director" "Sales Executive" ...
+ $ JobSatisfaction         : int  4 3 4 4 4 1 3 4 3 3 ...
+ $ MaritalStatus           : chr  "Divorced" "Single" "Single" "Married" ...
+ $ MonthlyIncome           : int  4403 19626 9362 10422 3760 8793 2127 6694 2220 5063 ...
+ $ MonthlyRate             : int  9250 17544 19944 24032 17218 4809 5561 24223 18410 15332 ...
+ $ NumCompaniesWorked      : int  2 1 2 1 1 1 2 2 1 1 ...
+ $ Over18                  : chr  "Y" "Y" "Y" "Y" ...
+ $ OverTime                : chr  "No" "No" "No" "No" ...
+ $ PercentSalaryHike       : int  11 14 11 19 13 21 12 14 19 14 ...
+ $ PerformanceRating       : int  3 3 3 3 3 4 3 3 3 3 ...
+ $ RelationshipSatisfaction: int  3 1 3 3 3 3 1 3 4 2 ...
+ $ StandardHours           : int  80 80 80 80 80 80 80 80 80 80 ...
+ $ StockOptionLevel        : int  1 0 0 2 0 2 0 3 1 1 ...
+ $ TotalWorkingYears       : int  8 21 10 14 6 9 7 8 1 8 ...
+ $ TrainingTimesLastYear   : int  3 2 2 3 2 4 5 5 2 3 ...
+ $ WorkLifeBalance         : int  2 4 3 3 3 2 2 3 3 2 ...
+ $ YearsAtCompany          : int  5 20 2 14 6 9 4 1 1 8 ...
+ $ YearsInCurrentRole      : int  2 7 2 10 3 7 2 0 1 2 ...
+ $ YearsSinceLastPromotion : int  0 4 2 5 1 1 0 0 0 7 ...
+ $ YearsWithCurrManager    : int  3 9 2 7 3 7 3 0 0 7 ...
+
+#No Salary Data
+```{r}
+CleanEmployeeDataSalary1 = CleanEmployeeDataSalary
+
+
+CleanEmployeeDataSalary1 = dummy_cols(CleanEmployeeData, select_columns = c("BusinessTravel", "Department", "EducationField", "Gender", "JobRole"))
+
+CleanEmployeeDataSalary1$BusinessTravelTF = ifelse(CleanEmployeeDataSalary1$`BusinessTravel_Non-Travel` == 1, 0,1)
+
+CleanEmployeeDataSalary1$JobRoleTF = ifelse(CleanEmployeeDataSalary1$JobRole_Manager == 1|CleanEmployeeDataSalary1$`JobRole_Sales Executive` == 1|CleanEmployeeDataSalary1$`JobRole_Research Director` == 1,0,1)
+
+CleanEmployeeDataSalary1[, c(39:66)] = CleanEmployeeDataSalary1[,c(39:62)] %>% mutate_if(sapply(CleanEmployeeDataSalary1[, c(39:62)], is.numeric), as.factor)
+
+lm_SalaryDF = CleanEmployeeDataSalary1[,c(2,5,7,8,12,14:16,18,20,21,25:27, 29:37, 39:62)]
+
+lmSalaryMod = lm(MonthlyIncome~., lm_SalaryDF)
+
+summary(lmSalaryMod)
+
+
+```
+
+
+#Predicting Salary
+```{r}
+
+SalaryPredict= predict(lmSalaryMod,newdata = CleanEmployeeDataSalary1)
+SalaryPredict
+```
+
+#Saving Predicted Salary to File 
+```{r}
+CleanEmployeeDataSalary1$PredictedSalary = (SalaryPredict)
+PredictionSalaryDF = data.frame(c)
+
+write.csv(PredictionSalaryDF, "SalaryPrediction.cvs", row.names = TRUE)
+
+```
+
+
+#Predicting Attrition
+```{r}
+employee_noattri = read.csv('CaseStudy2CompSet No Attrition.csv', header = TRUE) 
+
+classifier1 = naiveBayes(model[,-c(1,14,24,28,5,21,23,9,10,11,37:45)],model$Attrition)
+
+
+attrition_pred = predict(classifier1, employee_noattri)
+employee_noattri$PredictAttrition = unlist(attrition_pred)
+
+
+PredictionsAttritionDF = data.frame(c(employee_noattri$ID), c(employee_noattri$PredictAttrition))
+
+#Checking Prediction with df
+PredictionsAttritionDF %>% count(c.employee_noattri.PredictAttrition.)
+employee_noattri %>% count(PredictAttrition)
+
+#Plotting the Prediction
+PredictionsAttritionDF %>% ggplot(aes(x = c.employee_noattri.PredictAttrition., fill=c.employee_noattri.PredictAttrition.)) + labs(title = "Predicting Attrition", x = "Predicted Attrition", fill = "Predicted Attrition") + geom_bar()
+
+#Writing Prediction into CSV file 
+write.csv(PredictionsAttritionDF, "AttritionPrediction.csv", row.names = TRUE)
+
+```
