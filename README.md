@@ -22,7 +22,6 @@ and the outputs for the predicted salary will be called Case2Predictions(LastNam
 ##Data
 The project comprises of 3 datasets that will be used during the project. CaseStudy2-data (1).csv will be used to create our models and train them. After  finding the best model we will use our best model to predict Salaries based on CaseStudy2CompSet No Salary.xlsx and then predict attrition from     CaseStudy2CompSet No Attrition.csv
 
-
 CaseStudy2-data (1).csv 
 CaseStudy2CompSet No Salary.xlsx
 CaseStudy2CompSet No Attrition.csv
