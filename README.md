@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 This project's goal is to predict attrition within DDSAQnalytics given a main data set to build our models and 2 sets for prediction. Of those 2 sets for prediction, one will be used for Salary Prediction and the other will be used for Attrition Prediction.   
 
 ##Version of R
+
 platform       x86_64-apple-darwin17.0     
 arch           x86_64                      
 os             darwin17.0                  
