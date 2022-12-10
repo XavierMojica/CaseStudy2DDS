@@ -10,9 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ##Author Name
+
 Xavier Ray Mojica
 
 ##Github Username
+
 XavierMojica
 
 
@@ -38,12 +40,14 @@ version.string R version 4.2.1 (2022-06-23)
 
 
 ##Folder Structure 
+
 There are two files that will be created on to which we will store our outputs. 
 The outputs for Attrition prediction will be called  Case2Predictions(LastName)Attrition.csv
 and the outputs for the predicted salary will be called Case2Predictions(LastName)Salary.csv
 
 
 ##Data
+
 The project comprises of 3 datasets that will be used during the project. CaseStudy2-data (1).csv will be used to create our models and train them. After  finding the best model we will use our best model to predict Salaries based on CaseStudy2CompSet No Salary.xlsx and then predict attrition from     CaseStudy2CompSet No Attrition.csv
 
 CaseStudy2-data (1).csv 
