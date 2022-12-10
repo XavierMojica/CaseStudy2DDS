@@ -9,6 +9,13 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+##Author Name
+Xavier Ray Mojica
+
+##Github Username
+XavierMojica
+
+
 ##Case Study Project for Employee Attrition 
 
 This project's goal is to predict attrition within DDSAQnalytics given a main data set to build our models and 2 sets for prediction. Of those 2 sets for prediction, one will be used for Salary Prediction and the other will be used for Attrition Prediction.   
@@ -28,7 +35,7 @@ day            23
 svn rev        82513                       
 language       R                           
 version.string R version 4.2.1 (2022-06-23)
-       
+
 
 ##Folder Structure 
 There are two files that will be created on to which we will store our outputs. 
